@@ -1,0 +1,50 @@
+# ── Python ────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Environments ──────────────────────────────────────────────
+.env
+.venv/
+venv/
+env/
+ENV/
+
+# ── IDE / Editor ──────────────────────────────────────────────
+.vscode/settings.json
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# ── ML Artefacts (large binaries — tracked via DVC or Git LFS) ─
+models/best_model.pkl
+models/shap_values.npy
+models/figures/*.png
+
+# ── MLflow runs (can be large) ────────────────────────────────
+mlruns/
+
+# ── Data ── raw data must NEVER leave the local machine ────────
+data/raw/*.dta
+# CSV kept for reference (small enough)
+# data/raw/diabetes_dataset.csv
+
+# ── Logs ──────────────────────────────────────────────────────
+*.log
+training.log
+
+# ── Jupyter ───────────────────────────────────────────────────
+.ipynb_checkpoints/
+
+# ── Sensitive ─────────────────────────────────────────────────
+*.env
+secrets.yaml

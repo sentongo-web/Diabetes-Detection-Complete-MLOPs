@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Your Risk Result — Nakaseke NCD-AI{% endblock %}
+
+{% block hero_title %}Your Hypertension Risk Result{% endblock %}
+{% block hero_sub %}Based on the information you provided{% endblock %}
+
+{% block content %}
+
+{% if error %}
+<div class="error-box">
+  <i class="fas fa-exclamation-triangle"></i>
+  <strong>Error:</strong> {{ error }}
+  <br /><a href="/">Try again</a>
+</div>
+
+{% else %}
+
+<!-- ── Risk Score Card ── -->
+<div class="result-card">
+  <div class="risk-gauge-wrapper">
+    <svg viewBox="0 0 200 120" class="risk-gauge">
+      <!-- Background arc -->
+      <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#E0E0E0" stroke-width="14" stroke-linecap="round"/>
+      <!-- Coloured arc proportional to probability -->
+      <path id="riskArc" d="M 20 100 A 80 80 0 0 1 180 100" fill="none"
+            stroke="{{ color }}" stroke-width="14" stroke-linecap="round"
+            stroke-dasharray="251.3"
+            stroke-dashoffset="{{ (100 - prob) / 100 * 251.3 | round(1) }}" />
+      <!-- Needle -->
+      <line id="needle" x1="100" y1="100" x2="100" y2="30"
+            stroke="#2C3E50" stroke-width="3" stroke-linecap="round"
+            transform="rotate({{ (prob / 100 * 180) - 90 }}, 100, 100)" />
+      <circle cx="100" cy="100" r="6" fill="#2C3E50" />
+      <!-- Score text -->
+      <text x="100" y="115" text-anchor="middle" font-size="22" font-weight="bold" fill="{{ color }}">
+        {{ prob }}%
+      </text>
+    </svg>
+    <div class="risk-labels">
+      <span>0%</span><span>50%</span><span>100%</span>
+    </div>
+  </div>
+
+  <div class="result-summary">
+    <div class="risk-band-badge" style="background-color: {{ color }};">
+      {{ band }} Risk
+    </div>
+    <p class="result-message">{{ message }}</p>
+
+    {% if bmi %}
+    <div class="quick-stats">
+      <div class="stat-item">
+        <span class="stat-label">Estimated BMI</span>
+        <span class="stat-value">{{ bmi }} kg/m²</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Risk Probability</span>
+        <span class="stat-value" style="color:{{ color }}">{{ prob }}%</span>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ── Recommendations ── -->
+{% if tips %}
+<div class="recommendations-card">
+  <h3><i class="fas fa-lightbulb"></i> Personalised Recommendations</h3>
+  <ul class="tips-list">
+    {% for tip in tips %}
+    <li><i class="fas fa-check-circle tip-icon"></i> {{ tip }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<!-- ── Clinical Disclaimer ── -->
+<div class="disclaimer-card">
+  <i class="fas fa-stethoscope"></i>
+  <div>
+    <strong>Important:</strong> This result is a statistical estimate, not a clinical diagnosis.
+    Blood pressure must be measured with a cuff by a trained health worker to confirm hypertension.
+    If your risk is Moderate or higher, please visit your nearest health facility.
+  </div>
+</div>
+
+<!-- ── WHO Thresholds reference ── -->
+<div class="info-panel">
+  <h4><i class="fas fa-book-medical"></i> Reference: How Hypertension is Defined (WHO / JNC-8)</h4>
+  <div class="threshold-grid">
+    <div class="threshold-item normal">
+      <div class="threshold-label">Normal</div>
+      <div class="threshold-val">SBP &lt; 120 and DBP &lt; 80 mmHg</div>
+    </div>
+    <div class="threshold-item elevated">
+      <div class="threshold-label">Elevated</div>
+      <div class="threshold-val">SBP 120-129 and DBP &lt; 80 mmHg</div>
+    </div>
+    <div class="threshold-item stage1">
+      <div class="threshold-label">Stage 1 Hypertension</div>
+      <div class="threshold-val">SBP 130-139 or DBP 80-89 mmHg</div>
+    </div>
+    <div class="threshold-item stage2">
+      <div class="threshold-label">Stage 2 Hypertension</div>
+      <div class="threshold-val">SBP &ge; 140 or DBP &ge; 90 mmHg</div>
+    </div>
+  </div>
+</div>
+
+{% endif %}
+
+<!-- ── Navigation ── -->
+<div class="result-nav">
+  <a href="/" class="btn-secondary"><i class="fas fa-redo"></i> Screen Again</a>
+</div>
+
+{% endblock %}

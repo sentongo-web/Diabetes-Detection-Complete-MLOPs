@@ -1,0 +1,81 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# config.yaml  –  Central configuration for the Nakaseke NCD-AI pipeline
+#
+# Every magic number, file path, and hyper-parameter lives here so the rest
+# of the code never needs to be edited for routine experiments.
+# ──────────────────────────────────────────────────────────────────────────────
+
+project:
+  name: "Nakaseke NCD AI – Hypertension Detection"
+  version: "1.0.0"
+  author: "Paul Sentongo"
+  institution: "Nakaseke Hospital, Uganda"
+
+paths:
+  raw_rif:     "data/raw/RIF_final.dta"
+  raw_csv:     "data/raw/diabetes_dataset.csv"
+  processed:   "data/processed/nakaseke_clean.csv"
+  model_dir:   "models"
+  best_model:  "models/best_model.pkl"
+  shap_values: "models/shap_values.npy"
+
+target:
+  column: "hypertension"          # Binary: 1 = hypertensive, 0 = normotensive
+  positive_label: 1
+  prevalence_note: "~36 % in this cohort – near-ideal balance for ML"
+
+# ── Blood pressure thresholds (JNC-8 / WHO criteria) ──────────────────────────
+bp_thresholds:
+  systolic_hypertensive:  140     # mmHg
+  diastolic_hypertensive:  90     # mmHg
+  systolic_min_valid:      70
+  systolic_max_valid:     250
+  diastolic_min_valid:     40
+  diastolic_max_valid:    140
+
+# ── Anthropometric validity bounds ────────────────────────────────────────────
+anthropometrics:
+  height_min_cm: 100
+  height_max_cm: 220
+  weight_min_kg:  20
+  weight_max_kg: 200
+  waist_min_cm:   40
+  waist_max_cm:  180
+  hip_min_cm:     50
+  hip_max_cm:    200
+  bmi_min:        12
+  bmi_max:        70
+  whr_min:       0.5
+  whr_max:       1.5
+
+# ── Glucose (used only for secondary diabetes analysis) ───────────────────────
+glucose:
+  fbg_diabetic_threshold:   7.0   # mmol/L – fasting
+  rbg_diabetic_threshold:  11.1   # mmol/L – random
+  rbg_min_valid:            2.0
+  rbg_max_valid:           30.0
+
+# ── Model training ─────────────────────────────────────────────────────────────
+training:
+  test_size:       0.20
+  val_size:        0.10
+  random_state:    42
+  cv_folds:        5
+  scoring_metric:  "roc_auc"
+  smote_k_neighbors: 5
+
+# ── Hyperparameter search (Optuna) ────────────────────────────────────────────
+optuna:
+  n_trials: 60
+  timeout:  600                   # seconds per model
+
+# ── MLflow ────────────────────────────────────────────────────────────────────
+mlflow:
+  tracking_uri:  "mlruns"
+  experiment_name: "nakaseke-hypertension"
+
+# ── Flask app ─────────────────────────────────────────────────────────────────
+flask:
+  host:  "0.0.0.0"
+  port:  5000
+  debug: false

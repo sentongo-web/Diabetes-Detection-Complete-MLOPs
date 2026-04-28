@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+
+{% block title %}Hypertension Risk Screener — Nakaseke NCD-AI{% endblock %}
+
+{% block content %}
+
+<div class="info-banner">
+  <i class="fas fa-info-circle"></i>
+  <strong>How this works:</strong> Answer the short questionnaire below.
+  The AI model — trained on 3,471 real patients from Nakaseke Hospital — estimates
+  your hypertension risk from lifestyle and body-measurement data alone. No blood test needed.
+</div>
+
+<form class="screening-form" action="/predict" method="POST" id="screeningForm">
+
+  <!-- ────────────────────── SECTION 1: Demographics ────────────────────── -->
+  <section class="form-section">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-user"></i></div>
+      <div>
+        <h2>Personal Information</h2>
+        <p>Basic demographic details used to calibrate risk thresholds.</p>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="gender"><i class="fas fa-venus-mars"></i> Biological Sex</label>
+        <select id="gender" name="gender" required>
+          <option value="">Select…</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="age"><i class="fas fa-birthday-cake"></i> Age (years)</label>
+        <input type="number" id="age" name="age" min="18" max="110" placeholder="e.g. 45" required />
+      </div>
+
+      <div class="form-group">
+        <label for="education"><i class="fas fa-graduation-cap"></i> Highest Education</label>
+        <select id="education" name="education">
+          <option value="0">No formal schooling</option>
+          <option value="1">Less than primary</option>
+          <option value="2" selected>Primary school</option>
+          <option value="3">O Level (secondary)</option>
+          <option value="4">A Level</option>
+          <option value="5">University degree</option>
+          <option value="6">Postgraduate</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="married"><i class="fas fa-ring"></i> Marital Status</label>
+        <select id="married" name="married">
+          <option value="1">Married / Partnered</option>
+          <option value="0">Single / Widowed / Divorced</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="employed"><i class="fas fa-briefcase"></i> Employment</label>
+        <select id="employed" name="employed">
+          <option value="1">Currently employed</option>
+          <option value="0">Not employed</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="household_size"><i class="fas fa-home"></i> Household Size (people)</label>
+        <input type="number" id="household_size" name="household_size" min="1" max="30" placeholder="e.g. 5" value="4" />
+      </div>
+    </div>
+  </section>
+
+  <!-- ────────────────────── SECTION 2: Anthropometrics ──────────────────── -->
+  <section class="form-section">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-weight"></i></div>
+      <div>
+        <h2>Body Measurements</h2>
+        <p>BMI, waist circumference and waist-hip ratio are among the strongest predictors.</p>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="height_cm"><i class="fas fa-ruler-vertical"></i> Height (cm)</label>
+        <input type="number" id="height_cm" name="height_cm" min="100" max="220" step="0.1" placeholder="e.g. 160" required />
+        <small class="hint">Example: 160 cm = 5ft 3in</small>
+      </div>
+
+      <div class="form-group">
+        <label for="weight_kg"><i class="fas fa-weight-hanging"></i> Weight (kg)</label>
+        <input type="number" id="weight_kg" name="weight_kg" min="20" max="200" step="0.1" placeholder="e.g. 65" required />
+      </div>
+
+      <div class="form-group">
+        <label for="waist_cm"><i class="fas fa-tape"></i> Waist Circumference (cm)</label>
+        <input type="number" id="waist_cm" name="waist_cm" min="40" max="180" step="0.5" placeholder="e.g. 80" />
+        <small class="hint">Measure around the belly button</small>
+      </div>
+
+      <div class="form-group">
+        <label for="hip_cm"><i class="fas fa-tape"></i> Hip Circumference (cm)</label>
+        <input type="number" id="hip_cm" name="hip_cm" min="50" max="200" step="0.5" placeholder="e.g. 95" />
+        <small class="hint">Widest point around the hips</small>
+      </div>
+
+      <!-- Live BMI display -->
+      <div class="form-group bmi-display" id="bmiDisplay" style="display:none;">
+        <label><i class="fas fa-calculator"></i> Your BMI (calculated)</label>
+        <div class="bmi-value" id="bmiValue">—</div>
+        <div class="bmi-label" id="bmiLabel"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ────────────────────── SECTION 3: Lifestyle ─────────────────────────── -->
+  <section class="form-section">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-smoking"></i></div>
+      <div>
+        <h2>Lifestyle Factors</h2>
+        <p>Tobacco, alcohol and physical activity are major modifiable risk factors.</p>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label><i class="fas fa-smoking"></i> Have you ever smoked tobacco?</label>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="ever_smoked" value="1" /> Yes
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="ever_smoked" value="0" checked /> No
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group" id="currentSmokerGroup" style="display:none;">
+        <label><i class="fas fa-cigarette"></i> Do you currently smoke daily?</label>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="current_smoker" value="1" /> Yes
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="current_smoker" value="0" checked /> No
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label><i class="fas fa-wine-glass"></i> Do you drink alcohol?</label>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="ever_alcohol" value="1" id="alcYes" /> Yes
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="ever_alcohol" value="0" checked id="alcNo" /> No
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group" id="drinksGroup" style="display:none;">
+        <label><i class="fas fa-beer"></i> Standard drinks per week</label>
+        <input type="number" id="drinks_per_week" name="drinks_per_week" min="0" max="50" placeholder="e.g. 3" />
+        <small class="hint">1 standard drink = 330ml beer or 30ml spirits</small>
+      </div>
+
+      <div class="form-group">
+        <label><i class="fas fa-running"></i> Do you do vigorous exercise?</label>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="vigorous_activity" value="1" /> Yes
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="vigorous_activity" value="0" checked /> No
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group" id="vigorousDaysGroup">
+        <label><i class="fas fa-calendar-check"></i> Exercise days per week</label>
+        <input type="number" id="vigorous_days" name="vigorous_days" min="0" max="7" placeholder="e.g. 3" value="3" />
+      </div>
+    </div>
+  </section>
+
+  <!-- ────────────────────── SECTION 4: Diet ───────────────────────────────── -->
+  <section class="form-section">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-apple-alt"></i></div>
+      <div>
+        <h2>Dietary Habits</h2>
+        <p>Diet is a modifiable risk factor — salt, fruit and vegetable intake matter most.</p>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label><i class="fas fa-apple-alt"></i> Do you eat fruit?</label>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="eats_fruit" value="1" checked /> Yes
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="eats_fruit" value="0" /> No
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="fruit_servings"><i class="fas fa-lemon"></i> Fruit servings per week</label>
+        <input type="number" id="fruit_servings" name="fruit_servings" min="0" max="21" placeholder="e.g. 5" value="5" />
+      </div>
+
+      <div class="form-group">
+        <label for="veg_servings"><i class="fas fa-carrot"></i> Vegetable servings per week</label>
+        <input type="number" id="veg_servings" name="veg_servings" min="0" max="21" placeholder="e.g. 7" value="7" />
+      </div>
+
+      <div class="form-group">
+        <label for="adds_salt"><i class="fas fa-shaker"></i> How often do you add extra salt?</label>
+        <select id="adds_salt" name="adds_salt">
+          <option value="never">Never</option>
+          <option value="rarely">Rarely</option>
+          <option value="sometimes" selected>Sometimes</option>
+          <option value="often">Often</option>
+          <option value="always">Always</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="processed_food"><i class="fas fa-hamburger"></i> How often do you eat processed food?</label>
+        <select id="processed_food" name="processed_food">
+          <option value="never">Never</option>
+          <option value="rarely">Rarely</option>
+          <option value="sometimes" selected>Sometimes</option>
+          <option value="often">Often</option>
+          <option value="always">Always</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="cooking_oil"><i class="fas fa-oil-can"></i> Main cooking oil type</label>
+        <select id="cooking_oil" name="cooking_oil">
+          <option value="vegetable" selected>Vegetable / Sunflower</option>
+          <option value="palm">Palm oil</option>
+          <option value="simsim">Simsim (sesame)</option>
+          <option value="olive">Olive oil</option>
+          <option value="solid">Solid fat / Margarine</option>
+          <option value="none">No oil / Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label><i class="fas fa-fire"></i> Biomass cooking exposure?</label>
+        <small class="hint">Do you cook mainly over firewood or charcoal?</small>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="biomass" value="1" checked /> Yes — firewood / charcoal
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="biomass" value="0" /> No — gas / electric
+          </label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ────────────────────── SUBMIT ─────────────────────────────────────────── -->
+  <div class="submit-section">
+    <div class="privacy-note">
+      <i class="fas fa-lock"></i>
+      <span>Your answers are processed in real time and never stored. This is a screening tool, not a diagnosis.</span>
+    </div>
+    <button type="submit" class="btn-predict" id="submitBtn">
+      <i class="fas fa-brain"></i> Calculate My Risk
+    </button>
+  </div>
+
+</form>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Show/hide current smoker field
+  document.querySelectorAll('[name="ever_smoked"]').forEach(r => {
+    r.addEventListener("change", () => {
+      document.getElementById("currentSmokerGroup").style.display =
+        r.value === "1" && r.checked ? "block" : "none";
+    });
+  });
+
+  // Show/hide drinks per week field
+  document.querySelectorAll('[name="ever_alcohol"]').forEach(r => {
+    r.addEventListener("change", () => {
+      document.getElementById("drinksGroup").style.display =
+        r.value === "1" && r.checked ? "block" : "none";
+    });
+  });
+
+  // Live BMI calculator
+  function calcBMI() {
+    const h = parseFloat(document.getElementById("height_cm").value);
+    const w = parseFloat(document.getElementById("weight_kg").value);
+    if (h > 0 && w > 0) {
+      const bmi = w / ((h / 100) ** 2);
+      const el  = document.getElementById("bmiDisplay");
+      const val = document.getElementById("bmiValue");
+      const lbl = document.getElementById("bmiLabel");
+      el.style.display = "block";
+      val.textContent = bmi.toFixed(1) + " kg/m²";
+      if (bmi < 18.5) { lbl.textContent = "Underweight"; lbl.className = "bmi-label bmi-under"; }
+      else if (bmi < 25) { lbl.textContent = "Normal weight"; lbl.className = "bmi-label bmi-normal"; }
+      else if (bmi < 30) { lbl.textContent = "Overweight"; lbl.className = "bmi-label bmi-over"; }
+      else { lbl.textContent = "Obese"; lbl.className = "bmi-label bmi-obese"; }
+    }
+  }
+  document.getElementById("height_cm").addEventListener("input", calcBMI);
+  document.getElementById("weight_kg").addEventListener("input", calcBMI);
+
+  // Form submission loading state
+  document.getElementById("screeningForm").addEventListener("submit", () => {
+    const btn = document.getElementById("submitBtn");
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analysing…';
+    btn.disabled = true;
+  });
+</script>
+{% endblock %}

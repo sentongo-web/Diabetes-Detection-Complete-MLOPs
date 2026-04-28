@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Nakaseke NCD-AI{% endblock %}</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+  <!-- ── Top Navigation ── -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <i class="fas fa-heartbeat pulse"></i>
+      <span>Nakaseke <strong>NCD-AI</strong></span>
+    </div>
+    <div class="nav-links">
+      <a href="/">Screener</a>
+      <a href="https://github.com/sentongo-web/Diabetes-Detection-Complete-MLOPs" target="_blank">
+        <i class="fab fa-github"></i> GitHub
+      </a>
+    </div>
+  </nav>
+
+  <!-- ── Hero Banner ── -->
+  <div class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <i class="fas fa-flask"></i> Health AI Research &bull; Nakaseke Hospital, Uganda
+      </div>
+      <h1>{% block hero_title %}Hypertension Risk Screener{% endblock %}</h1>
+      <p class="hero-sub">{% block hero_sub %}AI-powered community screening — no blood test required{% endblock %}</p>
+    </div>
+  </div>
+
+  <!-- ── Main Content ── -->
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- ── Footer ── -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-col">
+        <strong>Nakaseke NCD-AI</strong>
+        <p>A community health tool built from real patient data collected at Nakaseke Hospital, Uganda. Not a replacement for clinical diagnosis.</p>
+      </div>
+      <div class="footer-col">
+        <strong>Model</strong>
+        <ul>
+          <li>Algorithm: Logistic Regression + SMOTE</li>
+          <li>Patients: 3,471 (Nakaseke, Uganda)</li>
+          <li>Validation AUC: 0.689</li>
+          <li>Features: 36 (questionnaire only)</li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <strong>Disclaimer</strong>
+        <p>This tool is for research and screening purposes only. Always consult a qualified healthcare professional for diagnosis and treatment.</p>
+      </div>
+    </div>
+    <p class="footer-copy">&copy; 2024 Paul Sentongo &bull; Nakaseke Hospital Research Unit &bull; MIT License</p>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

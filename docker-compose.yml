@@ -1,0 +1,54 @@
+# docker-compose.yml — local development and deployment stack
+#
+# Services:
+#   app     — Flask prediction web server (port 5000)
+#   mlflow  — MLflow tracking UI       (port 5001)
+#
+# Usage:
+#   docker compose up --build          # start all services
+#   docker compose up app              # app only
+#   docker compose logs -f app         # follow logs
+
+version: "3.9"
+
+services:
+
+  # ── Production web application ────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    image: nakaseke-ncd-ai:latest
+    container_name: nakaseke_app
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_ENV:        production
+      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:-change-me-in-prod}
+    volumes:
+      # Mount models dir so you can update the model without rebuilding the image
+      - ./models:/home/appuser/app/models:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 30s
+      timeout:  5s
+      retries:  3
+
+  # ── MLflow Tracking Server ─────────────────────────────────────────────────────
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.13.0
+    container_name: nakaseke_mlflow
+    ports:
+      - "5001:5001"
+    command: >
+      mlflow server
+        --host 0.0.0.0
+        --port 5001
+        --backend-store-uri /mlruns
+        --default-artifact-root /mlruns
+    volumes:
+      - ./mlruns:/mlruns
+    restart: unless-stopped

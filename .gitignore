@@ -28,7 +28,7 @@ Thumbs.db
 # ── ML Artefacts (large binaries — tracked via DVC or Git LFS) ─
 models/best_model.pkl
 models/shap_values.npy
-models/figures/*.png
+# models/figures/*.png  -- figures are committed for README display
 
 # ── MLflow runs (can be large) ────────────────────────────────
 mlruns/
